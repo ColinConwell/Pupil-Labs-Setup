@@ -1,3 +1,5 @@
 pyzmq>=25.1.1
 msgpack>=1.0.7
 psychopy>=2023.2.3
+opencv-python>=4.9.0.80
+

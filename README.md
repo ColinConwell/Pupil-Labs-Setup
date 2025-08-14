@@ -4,9 +4,10 @@ Convenience wrappers for the Pupil Labs Core Network API plus a PsychoPy visuali
 
 - `pupil_tracker/network.py`: Minimal ZeroMQ client and subscriber for Pupil Core
 - `pupil_tracker/psychopy_viz.py`: PsychoPy visualizer that renders live gaze
+- `pupil_tracker/opencv_stream.py`: OpenCV visualizer (popup window for macOS/Linux)
 - `launch_capture.py`: CLI to open the visualizer window
 
-References: [Pupil Core Developer Docs](https://docs.pupil-labs.com/core/developer/), [VirtualHome Getting Started](http://virtual-home.org/documentation/master/get_started/get_started.html#id4)
+References: [Pupil Core Developer Docs](https://docs.pupil-labs.com/core/developer/)
 
 ## Prerequisites
 
@@ -41,13 +42,25 @@ If you encounter difficulties installing PsychoPy via pip on macOS, consider ins
 ## Launch the live gaze visualizer (MVP)
 
 - Ensure Pupil Capture is running, Pupil Remote is enabled, and calibration is done.
-- Run the visualizer:
+- Run with the default OpenCV popup window (macOS/Linux):
 
 ```bash
 python launch_capture.py --host 127.0.0.1 --port 50020
 ```
 
-- A window will appear. A dot will reflect live gaze; its color encodes confidence (red=low, yellow=medium, lime=high). Press `q` to quit.
+- Use the PsychoPy renderer instead of OpenCV:
+
+```bash
+python launch_capture.py --host 127.0.0.1 --port 50020 --use-psychopy
+```
+
+- PsychoPy supports `--fullscreen` for experiments:
+
+```bash
+python launch_capture.py --use-psychopy --fullscreen
+```
+
+- In both renderers, press `q` (or ESC in OpenCV) to quit.
 
 ## Use inside a PsychoPy experiment
 
@@ -70,14 +83,17 @@ High-level steps:
   - Firewalls: Allow incoming connections for Pupil Capture.
 - Stuttering updates:
   - Reduce system load; ensure sufficient lighting and stable detection.
-  - Our subscriber uses a small timeout and drains up to 100 messages per frame to keep latency low.
+  - Our subscriber uses a small timeout and drains up to 200 messages per frame to keep latency low.
 - PsychoPy installation issues on macOS:
   - Consider installing via `conda` (PsychoPy recommends this route) or ensure platform dependencies are available.
+- OpenCV window not opening on headless systems:
+  - Ensure a display server is available (e.g., run within a desktop session). On remote Linux, use X forwarding or a virtual framebuffer.
 
 ## Project layout
 
 - `pupil_tracker/network.py`: ZMQ REQ helper + SUB client to decode msgpack messages (topics like `gaze.3d.*`, `pupil.*`, `surfaces.*`).
 - `pupil_tracker/psychopy_viz.py`: Visualizes `gaze.*` messages; maps Pupil `norm_pos` ([0,1] origin top-left) to PsychoPy `norm` (origin center, y-up).
+- `pupil_tracker/opencv_stream.py`: Visualizes `gaze.*` via OpenCV in a popup window; color-coded confidence.
 - `launch_capture.py`: CLI entry point to start the visualizer.
 
 ## Related docs and tools
